@@ -120,13 +120,12 @@ double norm(const Matrix &v);
 Matrix cross(const Matrix &va, const Matrix &vb);
 Matrix cos(const Matrix &m);
 Matrix sin(const Matrix &m);
-size_t permuteEigen(Matrix &D, Matrix &v, const Matrix &z);
 
 
 bool findInArray(unsigned int *ats, size_t size, unsigned int target);
 inline int sign(double x) { return x < 0 ? -1 : 1; }
 inline bool compareSize(const Matrix &a, const Matrix &b) { return a._row == b._row && a._column == b._column; }
-size_t permuteEigen(Matrix &D, Matrix &v, const Matrix &z);
+// size_t permuteEigen(Matrix &D, Matrix &v, const Matrix &z);
 void sortAdj(double *value, size_t *order, size_t size);
 
 #endif

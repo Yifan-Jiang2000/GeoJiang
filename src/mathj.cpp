@@ -529,13 +529,16 @@ void Matrix::unblockedEigenDecomposition(Matrix &v) {
     // this->print();
 }
 
+
+#if 0
 void Matrix::blockedEigenDecomposition(Matrix &v)
 {
     v.setIdentity();
-    const unsigned int blockSize = 25;
+    const unsigned int maxBlockSize = 25;
     // Matrix W(this->_row, this->_column), U(this->_row, this->_column);
     // this->unblockedSymHessenberg(lambda, U, W, v);
-    if (this->row > blockSize) {
+    if (this->row > maxBlockSize) {
+        unsigned int bisect = int(_row / 2)
         double alpha = (*this)(blockSize, blockSize - 1);
         (*this)(blockSize - 1, blockSize - 1) -= alpha;
         (*this)(blockSize - 1, blockSize) -= alpha;
@@ -560,6 +563,7 @@ void Matrix::blockedEigenDecomposition(Matrix &v)
     }
 
 }
+#endif
 
 void Matrix::eigenDecomposition(Matrix &lambda, Matrix &v) const {
     v.setIdentity();
@@ -1144,4 +1148,3 @@ void sortAdj(double *value, size_t *order, size_t size) {
     return;
 }
 
-void mergeEigen(Matrix &)
