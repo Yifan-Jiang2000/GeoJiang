@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cassert>
 
+
 struct Matrix
 {
     size_t _row;
@@ -128,4 +129,7 @@ inline bool compareSize(const Matrix &a, const Matrix &b) { return a._row == b._
 // size_t permuteEigen(Matrix &D, Matrix &v, const Matrix &z);
 void sortAdj(double *value, size_t *order, size_t size);
 
+extern void (Matrix::*eigenSolver)(Matrix&, Matrix&) const;
+
 #endif
+

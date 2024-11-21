@@ -11,6 +11,9 @@
 #define EPSILON 1e-12
 
 
+void (Matrix::*eigenSolver)(Matrix&, Matrix&) const = &Matrix::eigenDecompositionLAPACK;
+
+
 Matrix::Matrix():_row(0),_column(0), _Mdata(nullptr), _isSlice(false){}
 
 Matrix::Matrix(size_t r, size_t c):_row(r),_column(c), _lD(c), _isSlice(false)
@@ -606,7 +609,7 @@ Matrix Matrix::getInv() const
     assert(_row == _column && "getInv:The matrix should be square matrix");
     Matrix lambda(_row, _column);
     Matrix v(_row, _column);
-    eigenDecompositionLAPACK(lambda, v);
+    (this->*eigenSolver)(lambda, v);
     Matrix invLambda = lambda.getInvDiag();
     return v * invLambda * v.transpose();
 }
@@ -984,7 +987,7 @@ Matrix pow(const Matrix &m, const double &s)
     Matrix res = Matrix(m._row, m._column);
     for (size_t i = 0; i < m._row * m._column; ++i){
         for (size_t j = 0; j < m._column; ++j) {
-            res(i, j) = std::pow(res(i, j), s);
+            res(i, j) = std::pow(m(i, j), s);
         }
     }
     return res;
@@ -1024,7 +1027,7 @@ Matrix cos(const Matrix &m)
     Matrix res(m._row, m._column);
     for (size_t i = 0; i < m._row; ++i) {
         for (size_t j = 0; j < m._column; ++j) {
-            res(i, j) = cos(res(i, j));
+            res(i, j) = cos(m(i, j));
         }
     }
     return res;
@@ -1035,7 +1038,7 @@ Matrix sin(const Matrix &m)
     Matrix res(m._row, m._column);    
     for (size_t i = 0; i < m._row; ++i) {
         for (size_t j = 0; j < m._column; ++j) {
-            res(i, j) = sin(res(i, j));
+            res(i, j) = sin(m(i, j));
         }
     }
     return res;
