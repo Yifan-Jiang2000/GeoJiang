@@ -149,19 +149,19 @@ Molecule::~Molecule()
 {
     delete[] _atoms;
 
-    for (int i = 0; i < _nBonds; ++i)
+    for (size_t i = 0; i < _nBonds; ++i)
         delete[] _bonds[i];
     delete[] _bonds;
 
-    for (int i = 0; i < _nAngles; ++i)
+    for (size_t i = 0; i < _nAngles; ++i)
         delete[] _angles[i];
     delete[] _angles;
 
-    for (int i =0; i < _nDihedrals; ++i)
+    for (size_t i =0; i < _nDihedrals; ++i)
         delete[] _dihedrals[i];
     delete[] _dihedrals;
 
-    for (int i =0; i < _nPairs; ++i)
+    for (size_t i =0; i < _nPairs; ++i)
         delete[] _pairs[i];
     delete[] _pairs;
     
@@ -200,7 +200,7 @@ void Molecule::print()
     }
 }
 
-void Molecule::output(std::ofstream &file, size_t format)
+void Molecule::output(std::ofstream &file, size_t format, double tol)
 {
     file << "-------------------------------------" << std::endl;
     file << "|This program is made by Yifan Jiang|" << std::endl;
@@ -332,7 +332,6 @@ void Molecule::output(std::ofstream &file, size_t format)
     {
         _M = new Matrix(DIMENSION * _nAtoms, DIMENSION * _nAtoms);
         Hessian::guessM(*_M);
-        double tol = 0.001;
         file << "Geometry optimization gradient RMS threshold:" << 
                 std::setprecision(8) << std::fixed <<
                 std::setw(15) << tol << std::endl;
@@ -368,7 +367,6 @@ void Molecule::output(std::ofstream &file, size_t format)
     }
     case 3:
     {
-        double tol = 0.0001;
         file << "Geometry optimization gradient RMS threshold:" << 
                 std::setprecision(8) << std::fixed <<
                 std::setw(15) << tol << std::endl;
@@ -376,9 +374,66 @@ void Molecule::output(std::ofstream &file, size_t format)
                 std::setw(12) << std::setprecision(6) << std::fixed << 
                 _e->sum() << std::endl;
         evolve(file, 3, tol);
+        file << std::endl << "##########################" << std::endl;
+        file <<              "# Optimization converged #" << std::endl;
+        file <<              "##########################" << std::endl << std::endl;
+        file << "Final energy at mimimum:" << std::setprecision(8) << std::fixed << std::setw(16) << _e->sum() << " kcal/mol" << std::endl;
+        file << "Final coordinates:" << std::endl;
+        for (size_t i = 0; i < _nAtoms; ++i)
+            file << std::setw(7) << AtomType::lookupAtomSym(_atoms[i]) << std::setprecision(6) << std::fixed <<
+            std::setw(14) << _pos->_Mdata[i] <<
+            std::setw(14) << _pos->_Mdata[i + _nAtoms] <<
+            std::setw(14) << _pos->_Mdata[i + _nAtoms * 2] << std::endl;
         break;
     }
+    case 4:
+    {
+        _M = new Matrix(DIMENSION * _nAtoms, DIMENSION * _nAtoms);
+        Hessian::guessM(*_M);
+        file << "Geometry optimization gradient RMS threshold:" << 
+                std::setprecision(8) << std::fixed <<
+                std::setw(15) << tol << std::endl;
+        file << "Gradient of the energy for initial structure (in kcal/mol/Angstrom)" << std::endl;
+        for (size_t i = 0; i < _nAtoms; ++i)
+            file << AtomType::lookupAtomSym(_atoms[i]) << std::setprecision(6) << std::fixed <<
+            std::setw(14) << _gx->_Mdata[i] <<
+            std::setw(14) << _gx->_Mdata[i + _nAtoms] <<
+            std::setw(14) << _gx->_Mdata[i + _nAtoms * 2] << std::endl;
+        evolve(file, 4, tol);
+        file << std::endl << "##########################" << std::endl;
+        file <<              "# Optimization converged #" << std::endl;
+        file <<              "##########################" << std::endl << std::endl;
+        file << "Final energy at mimimum:" << std::setprecision(8) << std::fixed << std::setw(16) << _e->sum() << " kcal/mol" << std::endl;
+        file << "Final coordinates:" << std::endl;
+        for (size_t i = 0; i < _nAtoms; ++i)
+            file << std::setw(7) << AtomType::lookupAtomSym(_atoms[i]) << std::setprecision(6) << std::fixed <<
+            std::setw(14) << _pos->_Mdata[i] <<
+            std::setw(14) << _pos->_Mdata[i + _nAtoms] <<
+            std::setw(14) << _pos->_Mdata[i + _nAtoms * 2] << std::endl;
+        break;
     }
+    case 6:
+    {       
+        file << "Geometry optimization gradient RMS threshold:" << 
+                std::setprecision(8) << std::fixed <<
+                std::setw(15) << tol << std::endl;
+        file << "Internal potential energy" << std::endl << 
+                std::setw(12) << std::setprecision(6) << std::fixed << 
+                _e->sum() << std::endl;
+        evolve(file, 6, tol);
+        file << std::endl << "##########################" << std::endl;
+        file <<              "# Optimization converged #" << std::endl;
+        file <<              "##########################" << std::endl << std::endl;
+        file << "Final energy at mimimum:" << std::setprecision(8) << std::fixed << std::setw(16) << _e->sum() << " kcal/mol" << std::endl;
+        file << "Final coordinates:" << std::endl;
+        for (size_t i = 0; i < _nAtoms; ++i)
+            file << std::setw(7) << AtomType::lookupAtomSym(_atoms[i]) << std::setprecision(6) << std::fixed <<
+            std::setw(14) << _pos->_Mdata[i] <<
+            std::setw(14) << _pos->_Mdata[i + _nAtoms] <<
+            std::setw(14) << _pos->_Mdata[i + _nAtoms * 2] << std::endl;
+        break;
+    }
+}
 }
 
 Molecule* Molecule::readFromFile(const char* const fileName)
@@ -416,7 +471,7 @@ Molecule* Molecule::readFromFile(const char* const fileName)
 
     unsigned int *atoms = new unsigned int[nAtoms];
     unsigned int **bonds = new unsigned int*[nBonds];
-    for (int i = 0; i < nBonds; ++i) 
+    for (size_t i = 0; i < nBonds; ++i) 
         bonds[i] = new unsigned int[N_ATOM_STRETCH];
 
 
@@ -432,7 +487,7 @@ Molecule* Molecule::readFromFile(const char* const fileName)
     }
     // std::cout << nAtoms << std::endl;
 
-    for (int i = 0; i < nBonds; ++i)
+    for (size_t i = 0; i < nBonds; ++i)
     {
         fgets(buffer, buffersize * sizeof(char), file);
         sscanf(buffer, " %u %u", &bonds[i][0], &bonds[i][1]);
@@ -706,9 +761,10 @@ void Molecule::calInterCoord(const Matrix &posA, Matrix &interC, Matrix &B)
 
 void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
 {
-    assert((mode == 2)||(mode == 3) && "Mode 2 is Cartesian Opt, Mode 3 is Internal Coord Opt, choose between these two.");
-    if (mode == 2)
-    {
+    // assert((mode == 2)||(mode == 3) && "Mode 2 is Cartesian Opt, Mode 3 is Internal Coord Opt, choose between these two.");
+    switch(mode) {
+        case 2:
+        {
         double RMS, a;
         Matrix y(_gx->_row, _gx->_column);
         Matrix s(_gx->_row, _gx->_column);
@@ -725,7 +781,7 @@ void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
                         std::setw(14) << p._Mdata[i] <<
                         std::setw(14) << p._Mdata[i + _nAtoms] <<
                         std::setw(14) << p._Mdata[i + _nAtoms * 2] << std::endl;
-            a = lineSearch(file, p);
+            a = lineSearch(file, p, 1.0, true);
             s = a * p;
             calGradient(*_gq, *_interCoor);
             Matrix gxOld = *_gx;
@@ -751,10 +807,10 @@ void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
                 file << std::endl;
             }
         } while(RMS > tol);
-    }
-    else if (mode == 3)
-    {
-        // std::clock_t start = clock();
+        break;
+        }
+        case 3:
+        {
         double RMS;
         unsigned int optCount = 0;
         Matrix B = _B->cutR(0, _nBonds + _nAngles + _nDihedrals - 1);
@@ -931,7 +987,7 @@ void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
                 file << std::endl;
             }
 
-        } while (optCount < 50 && RMS > tol);
+        } while (RMS > tol);
 
         if (RMS < tol) {
             file << std::endl << "##########################" << std::endl;
@@ -945,14 +1001,121 @@ void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
                 std::setw(14) << _pos->_Mdata[i + _nAtoms] <<
                 std::setw(14) << _pos->_Mdata[i + _nAtoms * 2] << std::endl;
         }
+        break;
+        }
+        case 4:
+        {
+        double RMS, a;
+        Matrix y(_gx->_row, _gx->_column);
+        Matrix s(_gx->_row, _gx->_column);
+        Matrix v(_gx->_row, _gx->_column);
+        unsigned int optCount = 0;
+        do
+        {
+            ++optCount;
+            Matrix p = - (*_M) * (*_gx);
+            file << std::endl << "***** Geometry optimization cycle number" << std::setw(4) << optCount << " ******" << std::endl << std::endl;
+            a = lineSearch(file, p);
+            s = a * p;
+            calGradient(*_gq, *_interCoor);
+            Matrix gxOld = *_gx;
+            *_gx = _B->transpose() * (*_gq);
+            y = *_gx - gxOld;
+            Hessian::updateM(*_M, s, y);
+            // v = (*_M) * y;
+            // *_M = (*_M) + ((dot(s,y) + dot(y,v)) / std::pow(dot(s,y),2)) * (s * s.transpose()) - (v * s.transpose() + s * v.transpose()) / dot(s,y);
+            RMS = norm(*_gx) / pow(_nAtoms * DIMENSION, 0.5);
+            file << " And GRMS:" << std::setprecision(7) << std::fixed << std::setw(15) << RMS << std::endl;
+        } while(RMS > tol);
+        break;
+        }
+        case 6:
+        {
+        double RMS;
+        unsigned int optCount = 0;
+        Matrix B = _B->cutR(0, _nBonds + _nAngles + _nDihedrals - 1);
+        Matrix G = B * B.transpose();
+        Matrix invG = G.getInv();
+        file << "Initial gradient in terms of the internal coordinates (kcal/mol/Angstrom or kcal/mol/radian):" << std::endl;
 
-        // invG.print(file);
-        // (invG * G).print(file);
-        // (invG * G * invG).print(file);
+        Matrix gq = invG * B * (*_gx);
+        for (size_t i = 0; i < gq._row; ++i) file << std::setprecision(6) << std::fixed << std::setw(12) << gq(i,0);
+        file << std::endl;
+
+        _M = new Matrix(gq._row, gq._row);
+        Hessian::guessM(*_M, _nBonds, _nAngles, _nDihedrals);
+        file << std::endl << "##################################" << std::endl;
+        file <<              "# Start of Geometry Optimization #" << std::endl;
+        file <<              "##################################" << std::endl << std::endl;
+        const double stepSize = 0.020;
+        do
+        {
+            ++optCount;
+            file << "*** Optimization Cycle" << std::setw(4) << optCount << " ***" << std::endl << std::endl;
+
+            Matrix p = - (*_M) * gq;
+            // Matrix pOld = p;
+            file << "Predicted update step in internal coordinates s_k (prior to possible scaling):" << std::endl;
+            for (size_t i = 0; i < p._row; ++i) file << std::setprecision(6) << std::fixed << std::setw(12) << p(i,0);
+            file << std::endl;
+            double pRMS = norm(p) / pow(p._row, 0.5);
+            if (pRMS > stepSize) {
+                p = (stepSize / pRMS) * p;
+            }
+            Matrix q = _interCoor->cutR(0, _nBonds + _nAngles + _nDihedrals - 1);
+            Matrix qOld = q;
+            q = q + p;
+            Matrix x = *_pos;
+            Matrix q1 = *_interCoor;
+            x = x + B.transpose() * invG * p;
+            unsigned int cartCount = 0;
+            double dxThresh = 1e-5;
+            double maxDx;
+            do
+            {
+                Matrix oldX = x;
+                ++cartCount;
+                calInterCoord(x,q1);
+                p = q - q1.cutR(0, _nBonds + _nAngles + _nDihedrals - 1);
+                for (size_t i = _nBonds + _nAngles; i < _nBonds + _nAngles + _nDihedrals; ++i) p(i,0) = fabs(p(i,0)) > PI ? p(i,0) - ((p(i,0) > 0) - (p(i,0) < 0)) * 2 * PI : p(i, 0);
+                Matrix dx = B.transpose() * invG * p;
+                x = x + dx;
+                file << std::endl;
+                maxDx = 0;
+                for (size_t i = 0; i < dx._row; ++i) if (fabs(dx(i,0)) > maxDx) maxDx = fabs(dx(i,0)); 
+            } while (maxDx > dxThresh);
+            *_pos = x;
+            calInterCoord(*_pos, *_interCoor, *_B);
+            calGradient(*_gq, *_interCoor);
+            file << "New coordiantes:" << std::endl;
+            for (size_t i = 0; i < _nAtoms; ++i)
+                file << "      " << AtomType::lookupAtomSym(_atoms[i]) << std::setprecision(6) << std::fixed <<
+                std::setw(14) << _pos->_Mdata[i] <<
+                std::setw(14) << _pos->_Mdata[i + _nAtoms] <<
+                std::setw(14) << _pos->_Mdata[i + _nAtoms * 2] << std::endl;
+            B = _B->cutR(0, _nBonds + _nAngles + _nDihedrals - 1);
+            G = B * B.transpose();
+            invG = G.getInv();              
+            (*_gx) = _B->transpose() * (*_gq);
+            Matrix gqOld = gq;
+            q = _interCoor->cutR(0, _nBonds + _nAngles + _nDihedrals - 1);
+            gq = invG * B * (*_gx);
+            RMS = norm(*_gx) / std::pow(_gx->_row, 0.5);
+            file << std::endl;
+            file << "Old and new energies:" << std::setw(13) << _e->sum();
+            calEnergy(*_e, *_interCoor);
+            file << std::setw(13) << _e->sum() << " And GRMS:" << std::setw(13) << RMS << std::endl << std::endl;
+            if (RMS < tol) break;
+            Matrix y = gq - gqOld;
+            Matrix s = q - qOld;
+            for (size_t i = _nBonds + _nAngles; i < _nBonds + _nAngles + _nDihedrals; ++i) s(i,0) = fabs(s(i,0)) > PI ? s(i,0) - ((s(i,0) > 0) - (s(i,0) < 0)) * 2 * PI : s(i, 0);
+            Hessian::updateM(*_M, s, y);
+        } while (RMS > tol);
+        }
     }
 }
 
-double Molecule::lineSearch(std::ofstream &file, const Matrix& p, double a)
+double Molecule::lineSearch(std::ofstream &file, const Matrix& p, double a, bool ifOutput)
 {
     const double c1 = 0.1;
     Matrix posT(_pos->_row, _pos->_column);
@@ -969,10 +1132,11 @@ double Molecule::lineSearch(std::ofstream &file, const Matrix& p, double a)
         calInterCoord(posT, interCT, BT);
         calEnergy(eT, interCT);
         energyNew = eT.sum();
-        file << "    Line search: alpha and energy:" << 
-                std::setprecision(6) << std::fixed <<
-                std::setw(13) << a << 
-                std::setw(13) << energyNew << std::endl;
+        if (ifOutput)
+            file << "    Line search: alpha and energy:" << 
+                    std::setprecision(6) << std::fixed <<
+                    std::setw(13) << a << 
+                    std::setw(13) << energyNew << std::endl;
     } while(energyNew > (energyOld + a * rightSide));
     *_pos = posT;
     *_e = eT;

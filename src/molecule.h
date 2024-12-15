@@ -58,7 +58,7 @@ public:
     Molecule(const size_t& nAt, const size_t& nBo, unsigned int *at, unsigned int **bo, Matrix *pos);
     ~Molecule();
     void print();
-    void output(std::ofstream &file, size_t format);
+    void output(std::ofstream &file, size_t format, double tol);
 
     /// @brief Generate Molecule Object Using Input File
     /// @param fileName The Input File
@@ -70,7 +70,7 @@ public:
     void calEnergy(Matrix &e, Matrix &interC);
     void calGradient(Matrix &gq, Matrix &interC);
     void evolve(std::ofstream &file, unsigned int mode, double tol = 0.001);
-    double lineSearch(std::ofstream &file, const Matrix& p, double a = 1);
+    double lineSearch(std::ofstream &file, const Matrix& p, double a = 1, bool ifOutput = false);
 };
 
 #endif

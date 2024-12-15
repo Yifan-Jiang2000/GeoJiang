@@ -2,6 +2,7 @@
 #define ATOMTYPE_H
 
 #include <unordered_map>
+#include <string>
 
 
 class AtomType

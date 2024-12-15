@@ -22,7 +22,7 @@ std::string trim(const std::string& str) {
 }
 
 
-int main(int argc, char *argv[])
+int main()
 {
     // double temp[16] = {1, 2, 3, 4, 2, 0, 5, 6, 3, 5, 0, 7, 4, 6, 7, 0};
     // double temp[16] = {4, 1, 2, 3, 1, 3, 1, 2, 2, 1, 2, 1, 3, 2, 1, 1};
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
     FILE *set = fopen("setting.ini", "r");
     assert(set && "setting.ini does not exist");
     char line[256];
-    size_t bytes;
+    // size_t bytes;
     while (fgets(line, sizeof(line), set))
     {
         if (line[0] == '\n' || line[0] == '#') continue;
@@ -146,6 +146,7 @@ int main(int argc, char *argv[])
     }
 
     int task, outputLevel;
+    double tol;
 
 
     // std::cout << keywords["task"] << std::endl;
@@ -158,6 +159,8 @@ int main(int argc, char *argv[])
     if (keywords["eigenSolver"] == "jiang") eigenSolver = &Matrix::eigenDecomposition;
     else eigenSolver = &Matrix::eigenDecompositionLAPACK;
 
+    if (keywords.find("tolerance") != keywords.end()) tol = 0.001;
+    else tol = std::stod(keywords["tolerance"]);
 
 
     if (task != 1) task *= outputLevel;
@@ -167,7 +170,7 @@ int main(int argc, char *argv[])
 
     Molecule *mol = Molecule::readFromFile(keywords["inputFile"].c_str());
     std::ofstream file(keywords["outputFile"].c_str());
-    mol->output(file, task);
+    mol->output(file, task, tol);
     file.close();
 
     return 1;
