@@ -1,3 +1,11 @@
+This program is made for the TCCM online programming project.
+
+You can download this code by git clone
+
+```bash
+git clone git@github.com:Yifan-Jiang2000/GeoJiang.git
+```
+
 Install this program you can use cmake
 
 ```bash
