@@ -107,14 +107,14 @@ void Matrix::swapColumn(size_t a, size_t b) {
 
 void Matrix::subtractRow(size_t a, size_t b, double e)
 {
-    for (int j = 0; j < _column; ++j)
+    for (size_t j = 0; j < _column; ++j)
         (*this)(a, j) -= e * (*this)(b, j);
         // _Mdata[a * _column + j] -= e * _Mdata[b * _column + j];
 }
 
 void Matrix::divideRow(size_t a, double e)
 {
-    for (int j = 0; j < _column; ++j)
+    for (size_t j = 0; j < _column; ++j)
         (*this)(a, j) /= e;
         // _Mdata[a * _column + j] /= e;
     return;
@@ -323,70 +323,6 @@ void Matrix::unblockedHessenberg(Matrix &A, Matrix &T, bool ifSym) const {
     return;
 }
 
-void Matrix::blockHessenberg(Matrix &A, Matrix &T) const {
-    if (_row < 32) {
-        unblockedHessenberg(A, T);
-        return;
-    } else {
-        A = *this;
-        T.setIdentity();
-        Matrix A_ = A, T_ = T;
-    
-    }
-}
-
-void Matrix::getUpHessenberg(Matrix &trans, Matrix &hessen) const
-{
-    hessen = *this;
-    trans.setIdentity();
-    Matrix H(_row, _column);
-    for (size_t i = 0; i < hessen._column - 2; ++i)
-    {
-        // std::clock_t start = clock();
-        Matrix a(hessen._row - i - 1, 1);
-        // memcpy(a._Mdata, hessen._Mdata + i * hessen._column + i + 1, (hessen._column - i - 1) * sizeof(double));
-        for (size_t j = i + 1; j < hessen._row; ++j)
-        {
-            a._Mdata[j - i - 1] = hessen._Mdata[j * hessen._column + i];
-        }
-        // std::cout << a._Mdata[0] << std::endl;
-        Matrix b(hessen._row - i - 1, 1);
-        b.setZero();
-        b._Mdata[0] = 1;        
-        Matrix u = a + (double)sign(a._Mdata[0]) * norm(a) * b;
-        if (fabs(a._Mdata[0]) < EPSILON) continue;
-        Matrix n = u / norm(u);
-        Matrix I(hessen._row - i - 1, hessen._column - i - 1);
-        I.setIdentity();
-        Matrix Hr = I - 2 * n * n.transpose();
-        H.setZero();
-        for (size_t m = 0; m < Hr._row; ++m)
-        {
-            // memcpy(H._Mdata + (m + i + 1) * H._column + i + 1, Hr._Mdata + m * Hr._column, Hr._column - 1 * sizeof(double));
-            for (size_t n = 0; n < Hr._column; ++n)
-            {
-                H._Mdata[(m + i + 1) * H._column + n + i + 1] = Hr._Mdata[m * Hr._column + n];
-            }
-        }
-        for (size_t m = 0; m < H._row - Hr._row; ++m)
-        {
-            H._Mdata[m *  H._column + m] = 1;
-        }
-        // H.print();
-        // std::cout << "!!!" << std::endl;
-        hessen = H * hessen * H.transpose();
-        trans = trans * H.transpose();
-        // std::cout << "!!!" << std::endl;
-        for (size_t m = 0; m < hessen._row * hessen._column; ++m)
-            hessen._Mdata[m] = fabs(hessen._Mdata[m]) < EPSILON ? 0 : hessen._Mdata[m];
-        // std::clock_t end = clock();
-        // std::cout << (double)(end - start) / CLOCKS_PER_SEC << std::endl;
-    }
-    // (trans.transpose() * hessen * trans).print();
-    // hessen.print();
-    // this->print();
-    return;
-}
 
 
 void Matrix::QRDecompositionTri(Matrix &Q, Matrix &v)
@@ -474,7 +410,7 @@ void Matrix::unblockedEigenDecomposition(Matrix &v) {
     // bool isConverge;
     // unsigned int notZero = 0;
     unsigned int cycles = 0;
-    double sqrt2 = std::pow(2, 0.5);
+    // double sqrt2 = std::pow(2, 0.5);
     double mu;
     do
     {
@@ -626,31 +562,6 @@ double Matrix::findEigen22() const
     double a = m + deviation;
     double b = m - deviation;
     return fabs(a) - (*this)(1, 1) > fabs(b) - (*this)(1, 1) ? b : a;
-}
-
-double Matrix::powerIter(Matrix &v)
-{
-    const double tol = 1e-5;
-    Matrix vec(_row, 1);
-    vec.setUnitVec();
-    Matrix vec_old = vec;
-    double sigma = 0, sigma_old;
-    do
-    {
-        sigma_old = sigma;
-        vec = (*this) * vec_old;
-        sigma = vec._Mdata[0] / vec_old._Mdata[0];
-        vec_old = vec / norm(vec);
-        // std::cout << vec._Mdata[0] << std::endl;
-        std::cout << sigma << std::endl;
-    } while (fabs(sigma - sigma_old) > tol);
-    Matrix temp = *this;
-    for (size_t i = 0; i < temp._row; ++i) temp._Mdata[i * temp._column + i] -= sigma;
-    temp = temp.guassEliminaton();
-    for (size_t i = 0; i < temp._row; ++i) v._Mdata[i] = temp._Mdata[i * _column + _column - 1];
-    v._Mdata[v._row - 1] = 1;
-
-    return sigma;
 }
 
 Matrix Matrix::guassEliminaton() const

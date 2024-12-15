@@ -64,12 +64,44 @@ public:
     /// @param fileName The Input File
     /// @return Return Pointer to Molecule Object 
     static Molecule* readFromFile(const char* const fileName);
+
+    /// @brief calculate internal coordinates of a molecule and the wilson B matrix
+    /// @param posA cartesian coordiantes
+    /// @param[out] interC internal coordinates
+    /// @param[out] B wilson B matrix
     void calInterCoord(const Matrix &posA, Matrix &interC, Matrix &B);
+
+    /// @brief calculate internal coordinates of a molecule
+    /// @param posA cartesian coordiantes
+    /// @param[out] interC internal coordinates 
     void calInterCoord(const Matrix &posA, Matrix &interC);
+
+    /// @brief get a set of force parameters for each internal coordinates
     void findForceConst();
+
+    /// @brief calculate energy from internal coordinates
+    /// @param[out] e energy contribution of each internal coordinates
+    /// @param interC internal coordinates
     void calEnergy(Matrix &e, Matrix &interC);
+
+    /// @brief calculate energy gradient from internal coordinates
+    /// @param[out] gq energy gradient contribution of each internal coordiantes
+    /// @param interC internal coordinates
     void calGradient(Matrix &gq, Matrix &interC);
+
+
+    /// @brief optimization process
+    /// @param file output file
+    /// @param mode optimization mode
+    /// @param tol tolerance of gradient
     void evolve(std::ofstream &file, unsigned int mode, double tol = 0.001);
+
+    /// @brief line search process for cartesian optimization
+    /// @param file output file
+    /// @param p predicted coordinate change
+    /// @param a scale of the coordinate change
+    /// @param ifOutput true in debugging mode, false in info only mode
+    /// @return 
     double lineSearch(std::ofstream &file, const Matrix& p, double a = 1, bool ifOutput = false);
 };
 

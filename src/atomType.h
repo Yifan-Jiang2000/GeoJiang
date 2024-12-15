@@ -5,6 +5,8 @@
 #include <string>
 
 
+
+/// @brief Convertion between atomic symbol and atomic number
 class AtomType
 {
 private:
@@ -15,6 +17,10 @@ public:
     /// @param atomSym Atom Symbol
     /// @return Return the Atom Number
     static unsigned int lookupAtomNumber(const std::string& atomSym);
+
+    /// @brief Get atomic symbol
+    /// @param atomNum 
+    /// @return Atomic symbol
     static std::string lookupAtomSym(const unsigned int& atomNum);
 };
 

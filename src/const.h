@@ -6,7 +6,7 @@
 #define DIMENSION 3
 
 
-// The atom in different force field
+// The number of atom in different force field
 
 #define N_ATOM_STRETCH 2
 #define N_ATOM_BEND 3

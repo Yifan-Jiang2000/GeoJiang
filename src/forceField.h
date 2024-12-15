@@ -15,6 +15,9 @@ struct ForceConst
     double _p2;
 
 
+    /// @brief compare atoms with those corresponding to the force constant
+    /// @param ats 
+    /// @return if atoms match
     bool ifAtomMatch(std::vector<unsigned int> ats);
 };
 
@@ -38,14 +41,28 @@ public:
     static std::vector<ForceConst<N_ATOM_TORSION>> torsionPara;
     static std::vector<ForceConst<N_ATOM_VDW>> vdwPara;
 
+
     MolForcePara(MolForcePara::ForceType t);
 
 
     static int ifSet;
     static void setPara();
+    /// @brief find the corresponding parameter
+    /// @param ats 
+    /// @return the two parameter
     std::array<double,2> findPara(std::vector<unsigned int> ats);
 
+    /// @brief calculate energy
+    /// @param[out] e energy
+    /// @param inter internal coordinates
+    /// @param para1 the first parameter
+    /// @param para2 the second parameter
     void calEnergy(Matrix&& e, const Matrix& inter, const Matrix& para1, const Matrix& para2);
+    /// @brief calculate gradient
+    /// @param[out] g gradient
+    /// @param inter internal coordiantes
+    /// @param para1 the first parameter
+    /// @param para2 the second parameter
     void calGradient(Matrix&& g, const Matrix& inter, const Matrix& para1, const Matrix& para2);
 
 };

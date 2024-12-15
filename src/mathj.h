@@ -47,20 +47,38 @@ struct Matrix
     Matrix transpose() const;
     Matrix inverse() const;
     void House(Matrix &v, double &beta) const;
+
+
+    /// @brief Find tridiagonal matrix out of a symmetric matrix using household transformation
+    /// @param A Target matrix
+    /// @param[out] V Orthogonal transformation matrix
+    /// @param[out] W Working matrix
+    /// @param[out] H Tridiagonal matrix
     void unblockedSymHessenberg(Matrix &A, Matrix &V, Matrix &W, Matrix &H) const;
+
     void unblockedHessenberg(Matrix &A, Matrix &T, bool ifSym = false) const;
-    void blockHessenberg(Matrix &A, Matrix &T) const;
-    void getUpHessenberg(Matrix &trans, Matrix &hessen) const;
+
     void QRDecompositionTri(Matrix &Q, Matrix &v);
     void QRDecomposition(Matrix &Q, Matrix &R) const;
+
+
+    /// @brief Unblocked method for eigen decomposition
+    /// @param[out] v Orthogonal transformation matrix (eigen vectors)
     void unblockedEigenDecomposition(Matrix &v);
     // void blockedEigenDecomposition(Matrix &v) const;
     void eigenDecomposition(Matrix &lambda, Matrix &v) const;
+
+    /// @brief Call lapack dsyev routine to find eigenvalue and eigen vectors
+    /// @param[out] lambda Eigen values
+    /// @param[out] v Eigen vectors
     void eigenDecompositionLAPACK(Matrix &lambda, Matrix &v) const;
     Matrix getInvDiag() const;
     Matrix getInv() const;
+
+
+    /// @brief Find one of the eigenvalues of a 2*2 matrix
+    /// @return An eigenvalue
     double findEigen22() const;
-    double powerIter(Matrix &v);
     Matrix guassEliminaton() const;
     double det() const;
     double sum() const;
