@@ -231,6 +231,13 @@ void Molecule::output(std::ofstream &file, size_t format, double tol)
                 std::endl;
     switch(format)
     {
+    /*
+        1 : singlepoint energy
+        2 : cartesian optimization with debugging output
+        3 : internal optimization with debugging output
+        4 : cartesian optimization with less output
+        6 : internal optimization with less output
+    */
     case 1:
     {
 
@@ -433,6 +440,9 @@ void Molecule::output(std::ofstream &file, size_t format, double tol)
             std::setw(14) << _pos->_Mdata[i + _nAtoms * 2] << std::endl;
         break;
     }
+    default:
+        std::cout << "No output format " << format << std::endl;
+        exit(1);
 }
 }
 
@@ -463,10 +473,6 @@ Molecule* Molecule::readFromFile(const char* const fileName)
         exit(1);
     }
 
-    // double **pos = new double*[DIMENSION];
-    // for (int i = 0; i < DIMENSION; ++i) 
-    //     pos[i] = new double[nAtoms];
-    // std::cout << nAtoms << std::endl;
     double *pos = new double[DIMENSION * nAtoms];
 
     unsigned int *atoms = new unsigned int[nAtoms];
@@ -483,29 +489,18 @@ Molecule* Molecule::readFromFile(const char* const fileName)
         char atomType[2];
         sscanf(buffer, " %lf %lf %lf %s", pos + i, pos + nAtoms + i, pos + 2 * nAtoms + i, atomType);
         atoms[i] = AtomType::lookupAtomNumber(atomType);
-        // std::cout << atoms[i] << std::endl;
     }
-    // std::cout << nAtoms << std::endl;
 
     for (size_t i = 0; i < nBonds; ++i)
     {
         fgets(buffer, buffersize * sizeof(char), file);
         sscanf(buffer, " %u %u", &bonds[i][0], &bonds[i][1]);
-        // std::cout << buffer << std::endl;
-        // std::cout << bonds[i][0] << " " << bonds[i][1] << std::endl;
     }
-    // std::cout << nAtoms << " " << nBonds << std::endl;
-    // while(fgets(buffer, sizeof(buffer), file) != nullptr)
-    // {
-    //     std::cout << buffer;
-    // }
-    // std::cout << fileName << std::endl;
     Matrix *p = new Matrix(DIMENSION * nAtoms, 1, pos);
 
     Molecule *mol = new Molecule(nAtoms, nBonds, atoms, bonds, p);
 
 
-    // delete[] pos;
     delete[] buffer;
     fclose(file);
     return mol;
@@ -761,10 +756,16 @@ void Molecule::calInterCoord(const Matrix &posA, Matrix &interC, Matrix &B)
 
 void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
 {
-    // assert((mode == 2)||(mode == 3) && "Mode 2 is Cartesian Opt, Mode 3 is Internal Coord Opt, choose between these two.");
     switch(mode) {
-        case 2:
-        {
+    /*
+        1 : singlepoint energy ( so it do not enter this function )
+        2 : cartesian optimization with debugging output
+        3 : internal optimization with debugging output
+        4 : cartesian optimization with less output
+        6 : internal optimization with less output
+    */
+    case 2:
+    {
         double RMS, a;
         Matrix y(_gx->_row, _gx->_column);
         Matrix s(_gx->_row, _gx->_column);
@@ -788,8 +789,6 @@ void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
             *_gx = _B->transpose() * (*_gq);
             y = *_gx - gxOld;
             Hessian::updateM(*_M, s, y);
-            // v = (*_M) * y;
-            // *_M = (*_M) + ((dot(s,y) + dot(y,v)) / std::pow(dot(s,y),2)) * (s * s.transpose()) - (v * s.transpose() + s * v.transpose()) / dot(s,y);
             RMS = norm(*_gx) / pow(_nAtoms * DIMENSION, 0.5);
             file << " And GRMS:" << std::setprecision(7) << std::fixed << std::setw(15) << RMS << std::endl;
             file << "New gradient g_k+1:" << std::endl;
@@ -808,9 +807,9 @@ void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
             }
         } while(RMS > tol);
         break;
-        }
-        case 3:
-        {
+    }
+    case 3:
+    {
         double RMS;
         unsigned int optCount = 0;
         Matrix B = _B->cutR(0, _nBonds + _nAngles + _nDihedrals - 1);
@@ -867,7 +866,6 @@ void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
             file << "*** Optimization Cycle" << std::setw(4) << optCount << " ***" << std::endl << std::endl;
 
             Matrix p = - (*_M) * gq;
-            // Matrix pOld = p;
             file << "Predicted update step in internal coordinates s_k (prior to possible scaling):" << std::endl;
             for (size_t i = 0; i < p._row; ++i) file << std::setprecision(6) << std::fixed << std::setw(12) << p(i,0);
             file << std::endl;
@@ -990,9 +988,9 @@ void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
 
         } while (RMS > tol);
         break;
-        }
-        case 4:
-        {
+    }
+    case 4:
+    {
         double RMS, a;
         Matrix y(_gx->_row, _gx->_column);
         Matrix s(_gx->_row, _gx->_column);
@@ -1010,22 +1008,22 @@ void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
             *_gx = _B->transpose() * (*_gq);
             y = *_gx - gxOld;
             Hessian::updateM(*_M, s, y);
-            // v = (*_M) * y;
-            // *_M = (*_M) + ((dot(s,y) + dot(y,v)) / std::pow(dot(s,y),2)) * (s * s.transpose()) - (v * s.transpose() + s * v.transpose()) / dot(s,y);
             RMS = norm(*_gx) / pow(_nAtoms * DIMENSION, 0.5);
             file << " And GRMS:" << std::setprecision(7) << std::fixed << std::setw(15) << RMS << std::endl;
         } while(RMS > tol);
         break;
-        }
-        case 6:
-        {
+    }
+    case 6:
+    {
         double RMS;
         unsigned int optCount = 0;
         Matrix B = _B->cutR(0, _nBonds + _nAngles + _nDihedrals - 1);
         Matrix G = B * B.transpose();
+        // inverse wilson B matrix
         Matrix invG = G.getInv();
         file << "Initial gradient in terms of the internal coordinates (kcal/mol/Angstrom or kcal/mol/radian):" << std::endl;
 
+        // calculate gradient w.r.t internal coordinates
         Matrix gq = invG * B * (*_gx);
         for (size_t i = 0; i < gq._row; ++i) file << std::setprecision(6) << std::fixed << std::setw(12) << gq(i,0);
         file << std::endl;
@@ -1040,9 +1038,8 @@ void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
         {
             ++optCount;
             file << "*** Optimization Cycle" << std::setw(4) << optCount << " ***" << std::endl << std::endl;
-
+            // predict coordinate change in internal coordinates
             Matrix p = - (*_M) * gq;
-            // Matrix pOld = p;
             file << "Predicted update step in internal coordinates s_k (prior to possible scaling):" << std::endl;
             for (size_t i = 0; i < p._row; ++i) file << std::setprecision(6) << std::fixed << std::setw(12) << p(i,0);
             file << std::endl;
@@ -1059,6 +1056,7 @@ void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
             unsigned int cartCount = 0;
             double dxThresh = 1e-5;
             double maxDx;
+            // find the optimized cartesian change
             do
             {
                 Matrix oldX = x;
@@ -1073,7 +1071,10 @@ void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
                 for (size_t i = 0; i < dx._row; ++i) if (fabs(dx(i,0)) > maxDx) maxDx = fabs(dx(i,0)); 
             } while (maxDx > dxThresh);
             *_pos = x;
+
+            // calculate new internal coordinates and gradient and energy
             calInterCoord(*_pos, *_interCoor, *_B);
+            calEnergy(*_e, *_interCoor);
             calGradient(*_gq, *_interCoor);
             file << "New coordiantes:" << std::endl;
             for (size_t i = 0; i < _nAtoms; ++i)
@@ -1083,7 +1084,7 @@ void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
                 std::setw(14) << _pos->_Mdata[i + _nAtoms * 2] << std::endl;
             B = _B->cutR(0, _nBonds + _nAngles + _nDihedrals - 1);
             G = B * B.transpose();
-            invG = G.getInv();              
+            invG = G.getInv();
             (*_gx) = _B->transpose() * (*_gq);
             Matrix gqOld = gq;
             q = _interCoor->cutR(0, _nBonds + _nAngles + _nDihedrals - 1);
@@ -1091,7 +1092,6 @@ void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
             RMS = norm(*_gx) / std::pow(_gx->_row, 0.5);
             file << std::endl;
             file << "Old and new energies:" << std::setw(13) << _e->sum();
-            calEnergy(*_e, *_interCoor);
             file << std::setw(13) << _e->sum() << " And GRMS:" << std::setw(13) << RMS << std::endl << std::endl;
             if (RMS < tol) break;
             Matrix y = gq - gqOld;
@@ -1099,7 +1099,11 @@ void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
             for (size_t i = _nBonds + _nAngles; i < _nBonds + _nAngles + _nDihedrals; ++i) s(i,0) = fabs(s(i,0)) > PI ? s(i,0) - ((s(i,0) > 0) - (s(i,0) < 0)) * 2 * PI : s(i, 0);
             Hessian::updateM(*_M, s, y);
         } while (RMS > tol);
-        }
+    break;
+    }
+    default:
+        std::cout << "No mode " << mode << std::endl;
+        exit(1);
     }
 }
 
