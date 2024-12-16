@@ -193,25 +193,6 @@ Matrix Matrix::inverse() const
 }
 
 void Matrix::House(Matrix &v, double &beta) const {
-//     double mu = dot(*this, *this);
-//     double sigma = mu - (*this)(0, 0) - (*this)(0, 0);
-//     v = *this;
-//     v(0, 0) = 1.;
-//     if (sigma < EPSILON) {
-//         beta = 0.;
-//         return;
-//     }
-//     mu = std::pow(mu, 0.5);
-//     if ((*this)(0, 0) > 0) {
-//         v(0, 0) = -sigma / ((*this)(0, 0) + mu);
-//     } else {
-//         v(0, 0) = (*this)(0, 0) - mu;
-//     }
-//     beta = 2 * std::pow(v(0, 0), 2) / (sigma + std::pow(v(0, 0), 2));
-//     v /= v(0, 0);
-    // std::cout << beta << std::endl;
-    // v.print();
-    // return;
     v = *this;
     v(0, 0) += (double)sign(v(0, 0)) * norm(v);
     beta = 2 / dot(v, v);
@@ -330,7 +311,6 @@ void Matrix::QRDecompositionTri(Matrix &Q, Matrix &v)
     Q.setIdentity();
     Matrix u(2, 1);
     double beta;
-    // Matrix R = *this;
     for (size_t i = 0; i < _column - 1; ++i) {
         this->cut(i, i + 1, i, i).House(u, beta);
         Matrix uuT = beta * u * u.transpose();
@@ -340,13 +320,7 @@ void Matrix::QRDecompositionTri(Matrix &Q, Matrix &v)
         Q_ -= Q_ * uuT;
         Matrix v_ = v.cut(0, v._row - 1, i, i + 1);
         v_ -= v_ * uuT;
-        // Matrix thisCut = this->cut(i, i + 1, i, _column - 1);
-        // thisCut -= uuT * thisCut;
-        // Matrix thisCut_ = this->cut(0, Q._row - 1, i, i + 1);
-        // thisCut_ -= thisCut_ * uuT;
     }
-    // R.print();
-    // *this = R * Q;
     return;
 }
 
@@ -400,49 +374,30 @@ void Matrix::unblockedEigenDecomposition(Matrix &v) {
     // v.setIdentity();
     const double tol = 1e-9;
     Matrix Q(this->_row, this->_column);
-    // Matrix R(this->_row, this->_column);
-    // Matrix I(this->_row, this->_column);
     Matrix Q_ = Q.cut(0, Q._row - 1, 0, Q._column - 1);
     Matrix R_ = this->cut(0, this->_row - 1, 0, this->_column - 1);
-    // Matrix I_ = I.cut(0, I._row - 1, 0, I._column - 1);
     Matrix v_ = v.cut(0, v._row - 1, 0, v._column - 1);
-    // I.setIdentity();        
-    // bool isConverge;
-    // unsigned int notZero = 0;
     unsigned int cycles = 0;
-    // double sqrt2 = std::pow(2, 0.5);
     double mu;
     do
     {
-        // if (R_(2, 1) < sqrt2 * R_(1, 0)) {
         Matrix m22 = R_.cut(0, 1, 0, 1);
         mu = m22.findEigen22();
-        // } else {
-            // mu = R_(0, 0);
-        // }
         for (size_t i = 0; i < R_._row; ++i) R_(i, i) -= mu;
         R_.QRDecompositionTri(Q_, v_);
         R_ = R_ * Q_;
         for (size_t i = 0; i < R_._row; ++i) R_(i, i) += mu;
-        // isConverge = true;
-        // if (fabs(R_(1, 0)) < tol && R_._row == 2) break;
         while (R_._row > 1 && fabs(R_(1, 0)) < tol) {
-            // std::cout << R_(1, 0) << std::endl;
-            // std::cout << R_._row << std::endl;
-            // this->print();
             --R_._row; --R_._column; R_._Mdata += R_._lD + 1;
             --Q_._row; --Q_._column; Q_._Mdata += Q_._lD + 1;
             --v_._column; v_._Mdata += 1;
-            // if (R_._row == 2) cycles = 0;
         }
         cycles++;
         if (cycles > 1000000) {
             this->print();
             break;
         }
-        // std::cout << R_._row << std::endl;
     } while(R_._row > 1);
-    // std::cout << cycles << std::endl;
     size_t *order = new size_t[_row];
     double *diag = new double[_row];
     for (size_t i = 0; i < _row; ++i) {
@@ -535,7 +490,7 @@ Matrix Matrix::getInvDiag() const
     Matrix temp = *this;
     for (size_t i = 0; i < temp._row; ++i)
     {
-        temp._Mdata[i * _column + i] = fabs(temp._Mdata[i * _column + i]) > EPSILON ? 1 / temp._Mdata[i * _column + i] : 0.0;
+        temp._Mdata[i * _column + i] = fabs(temp._Mdata[i * _column + i]) > 1e-8 ? 1 / temp._Mdata[i * _column + i] : 0.0;
     }
     return temp;
 }

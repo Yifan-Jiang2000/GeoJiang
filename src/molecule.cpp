@@ -931,6 +931,7 @@ void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
             invG = G.getInv();              
             file << "New set of internals q (note these are the ones that correspond to the best fit Cartesians):" << std::endl;
                 for (size_t i = 0; i < _nBonds + _nAngles + _nDihedrals; ++i) file << std::setprecision(6) << std::fixed << std::setw(12) << (*_interCoor)(i,0);
+            file << std::endl;
             file << "Wilson B Matrix at the new structure:" << std::endl;
             for (size_t i = 0; i < B._row; ++i)
             {
@@ -988,19 +989,6 @@ void Molecule::evolve(std::ofstream &file, unsigned int mode, double tol)
             }
 
         } while (RMS > tol);
-
-        if (RMS < tol) {
-            file << std::endl << "##########################" << std::endl;
-            file <<              "# Optimization converged #" << std::endl;
-            file <<              "##########################" << std::endl << std::endl;
-            file << "Final energy at mimimum:" << std::setprecision(8) << std::fixed << std::setw(16) << _e->sum() << " kcal/mol" << std::endl;
-            file << "Final coordinates:" << std::endl;
-            for (size_t i = 0; i < _nAtoms; ++i)
-                file << std::setw(7) << AtomType::lookupAtomSym(_atoms[i]) << std::setprecision(6) << std::fixed <<
-                std::setw(14) << _pos->_Mdata[i] <<
-                std::setw(14) << _pos->_Mdata[i + _nAtoms] <<
-                std::setw(14) << _pos->_Mdata[i + _nAtoms * 2] << std::endl;
-        }
         break;
         }
         case 4:

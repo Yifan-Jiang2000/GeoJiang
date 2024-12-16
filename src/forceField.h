@@ -16,7 +16,7 @@ struct ForceConst
 
 
     /// @brief compare atoms with those corresponding to the force constant
-    /// @param ats 
+    /// @param ats Atom numbers
     /// @return if atoms match
     bool ifAtomMatch(std::vector<unsigned int> ats);
 };
@@ -58,6 +58,7 @@ public:
     /// @param para1 the first parameter
     /// @param para2 the second parameter
     void calEnergy(Matrix&& e, const Matrix& inter, const Matrix& para1, const Matrix& para2);
+
     /// @brief calculate gradient
     /// @param[out] g gradient
     /// @param inter internal coordiantes

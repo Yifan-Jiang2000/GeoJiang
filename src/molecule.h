@@ -7,21 +7,12 @@
 #include <cstddef>
 
 /// @brief Class for Molecule
-/// @param _nAtoms Number of Atomes
-/// @param _nBonds Number of Bonds
-/// @param _nAngles Number of Angles
-/// @param _nDihedrals Number of Dihedrals
-/// @param _atoms Atom Number of Each Atoms
-/// @param _bonds The Two Atoms that Form the Bonds
-/// @param _angles The Three Atoms that Form the Angles
-/// @param _dihedrals The Four Atoms that Form the Dihedrals
-/// @param _pos Pointer to Matrix Object of Position, The Size Should Be nAtoms * DIMENSION
-/// @param _bondLength Pointer to Matrix Object of Bond Lengths
-/// @param _AngleDegree Pointer to Matrix Object of Angle Degrees
-/// @param _DihedralDegree Pointer to Matrix Object Dihedral Degrees
-/// @param _bondC Force Constant of Bonds
-/// @param _angleC Force Constant of Angles
-/// @param _dihedralC Force Constant of Dihedrals
+/// @param _nAtoms Number of atoms
+/// @param _nBonds Number of bonds
+/// @param _nAngles Number of angles
+/// @param _nDihedrals Number of dihedrals
+/// @param _nPairs Number of atom pairs
+
 class Molecule
 {
 private:
